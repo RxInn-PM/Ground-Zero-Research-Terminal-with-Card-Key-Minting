@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CERNEL//FORGE — Infinite Procedural Card Set</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+:root {
+  /* CLASH palette */
+  --overshoot-p: #ff2200;
+  --overshoot-s: #ff8844;
+  --deadlock-p:  #8855ff;
+  --deadlock-s:  #ccaaff;
+  --bloom-p:     #00ff88;
+  --bloom-s:     #88ffcc;
+
+  /* CONDUIT palette */
+  --relay-p:   #00ccff;
+  --relay-s:   #0066aa;
+  --vector-p:  #ffdd00;
+  --vector-s:  #aa8800;
+  --cluster-p: #ff0077;
+  --cluster-s: #880044;
+
+  --bg:    #020407;
+  --bg2:   #050a0f;
+  --g:     #00ff88;
+  --gdim:  #002211;
+  --gmid:  #005533;
+  --border:rgba(0,255,136,0.12);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:var(--bg);color:var(--g);font-family:'Share Tech Mono',monospace;font-size:12px;min-height:100vh;overflow-x:hidden;cursor:none;}
+
+/* CRT */
+body::before{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0,transparent 2px,rgba(0,0,0,.12) 2px,rgba(0,0,0,.12) 4px);}
+body::after{content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 0%,transparent 50%,rgba(0,0,0,.65) 100%);}
+
+/* CURSOR */
+#cur{position:fixed;width:9px;height:16px;background:var(--g);pointer-events:none;z-index:10000;
+  animation:blink 1s step-end infinite;box-shadow:0 0 8px var(--g),0 0 18px rgba(0,255,136,.3);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── HEADER ─────────────────────────────────── */
+#header{
+  position:sticky;top:0;z-index:500;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:10px 20px 8px;
+}
+.hrow1{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:8px;}
+.logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:20px;
+  color:var(--g);text-shadow:0 0 14px var(--g),0 0 32px rgba(0,255,136,.25);letter-spacing:5px;}
+.logo em{color:var(--relay-p);font-style:normal;text-shadow:0 0 12px var(--relay-p);}
+.logo small{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gmid);letter-spacing:3px;display:block;}
+
+.chip{padding:2px 7px;border:1px solid currentColor;font-size:9px;letter-spacing:2px;}
+.chip-g{color:var(--g)}.chip-r{color:var(--overshoot-p)}.chip-c{color:var(--relay-p)}.chip-y{color:var(--vector-p)}.chip-v{color:var(--deadlock-p)}
+
+/* CONTROLS ROW */
+.hrow2{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ctrl-group{display:flex;gap:4px;align-items:center;padding-right:12px;border-right:1px solid var(--gdim);}
+.ctrl-group:last-child{border-right:none;}
+.ctrl-label{font-size:9px;color:var(--gmid);letter-spacing:2px;white-space:nowrap;}
+
+.btn{
+  padding:4px 12px;border:1px solid;font-family:'Share Tech Mono',monospace;font-size:10px;
+  cursor:pointer;background:transparent;letter-spacing:1px;transition:all .12s;white-space:nowrap;
+}
+.btn-g{color:var(--gmid);border-color:var(--gmid);}
+.btn-g:hover{color:var(--g);border-color:var(--g);box-shadow:0 0 8px var(--g);background:rgba(0,255,136,.04);}
+.btn-r{color:#440800;border-color:#440800;}
+.btn-r:hover{color:var(--overshoot-p);border-color:var(--overshoot-p);box-shadow:0 0 8px var(--overshoot-p);}
+.btn-c{color:#004455;border-color:#004455;}
+.btn-c:hover{color:var(--relay-p);border-color:var(--relay-p);box-shadow:0 0 8px var(--relay-p);}
+.btn-v{color:#220044;border-color:#220044;}
+.btn-v:hover{color:var(--deadlock-p);border-color:var(--deadlock-p);box-shadow:0 0 8px var(--deadlock-p);}
+.btn-y{color:#332200;border-color:#332200;}
+.btn-y:hover{color:var(--vector-p);border-color:var(--vector-p);box-shadow:0 0 8px var(--vector-p);}
+
+/* TYPE BTNS */
+.type-btn{
+  padding:3px 9px;border:1px solid;font-family:'Share Tech Mono',monospace;font-size:9px;
+  cursor:pointer;background:transparent;letter-spacing:2px;transition:all .12s;
+}
+.type-btn.on{background:rgba(255,255,255,.07);}
+.tb-ov{color:#ff4411;border-color:#ff2200;} .tb-ov.on{box-shadow:0 0 6px var(--overshoot-p);}
+.tb-dl{color:#9966ff;border-color:#8855ff;} .tb-dl.on{box-shadow:0 0 6px var(--deadlock-p);}
+.tb-bl{color:#22ff88;border-color:#00ff88;} .tb-bl.on{box-shadow:0 0 6px var(--bloom-p);}
+.tb-re{color:#11ccff;border-color:#00ccff;} .tb-re.on{box-shadow:0 0 6px var(--relay-p);}
+.tb-ve{color:#ffcc00;border-color:#ffdd00;} .tb-ve.on{box-shadow:0 0 6px var(--vector-p);}
+.tb-cl{color:#ff2288;border-color:#ff0077;} .tb-cl.on{box-shadow:0 0 6px var(--cluster-p);}
+
+/* STATS */
+.hstats{display:flex;gap:14px;font-size:9px;flex-wrap:wrap;align-items:center;}
+.hs{color:var(--gmid)}.hs span{color:var(--g);}
+
+/* SEED INPUT */
+.seed-input{
+  background:transparent;border:1px solid var(--gdim);color:var(--g);
+  font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 8px;
+  width:180px;letter-spacing:1px;outline:none;
+}
+.seed-input:focus{border-color:var(--g);}
+.seed-input::placeholder{color:var(--gdim);}
+
+/* ── SUBTYPE FILTER BAR ─────────────────────── */
+#filter-bar{
+  display:flex;gap:0;padding:6px 20px;border-bottom:1px solid var(--border);
+  background:var(--bg2);overflow-x:auto;align-items:center;
+}
+.fb-label{font-size:9px;color:var(--gmid);letter-spacing:3px;margin-right:10px;white-space:nowrap;}
+.fb-btn{
+  padding:3px 10px;border:1px solid var(--gdim);color:var(--gmid);background:transparent;
+  font-family:'Share Tech Mono',monospace;font-size:9px;cursor:pointer;letter-spacing:2px;
+  margin-right:4px;transition:all .1s;white-space:nowrap;
+}
+.fb-btn:hover,.fb-btn.active{border-color:var(--g);color:var(--g);background:rgba(0,255,136,.05);}
+
+/* ── CARD GRID ─────────────────────────────── */
+#grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  gap:14px;padding:16px 20px 40px;
+}
+
+/* ── NFT CARD ──────────────────────────────── */
+.nft{
+  position:relative;aspect-ratio:5/7;border-radius:3px;overflow:hidden;
+  cursor:pointer;transition:transform .18s,filter .18s,box-shadow .18s;
+  border:1px solid rgba(255,255,255,.06);
+}
+.nft:hover{transform:translateY(-5px) scale(1.025);filter:brightness(1.12);}
+.nft svg{display:block;width:100%;height:100%;}
+
+/* HOVER OVERLAY */
+.nft-ov{
+  position:absolute;inset:0;background:rgba(0,0,0,.8);opacity:0;
+  transition:opacity .18s;display:flex;flex-direction:column;
+  justify-content:flex-end;padding:12px;z-index:5;
+}
+.nft:hover .nft-ov{opacity:1;}
+.nov-name{font-family:'VT323',monospace;font-size:20px;line-height:1;margin-bottom:3px;}
+.nov-type{font-size:8px;letter-spacing:2px;opacity:.6;margin-bottom:6px;}
+.nov-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;font-size:9px;margin-bottom:6px;}
+.nov-k{color:var(--gmid)}.nov-v{color:var(--g);font-family:'VT323',monospace;font-size:12px;}
+.nov-hash{font-size:7px;color:var(--gmid);word-break:break-all;margin-bottom:6px;}
+.nov-btns{display:flex;gap:5px;}
+.nov-btn{flex:1;padding:3px 0;border:1px solid;background:transparent;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;cursor:pointer;}
+
+/* RARITY STRIP */
+.rarity-strip{position:absolute;top:0;left:0;right:0;height:2px;z-index:3;}
+.rarity-badge{
+  position:absolute;top:6px;right:6px;z-index:4;
+  padding:1px 5px;font-size:7px;letter-spacing:2px;border:1px solid currentColor;
+  font-family:'Orbitron',sans-serif;font-weight:700;background:rgba(0,0,0,.6);
+}
+.type-badge{
+  position:absolute;top:6px;left:6px;z-index:4;
+  width:20px;height:20px;border-radius:2px;border:1px solid rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+  background:rgba(0,0,0,.5);
+}
+.minted-mark{
+  position:absolute;bottom:42px;right:6px;z-index:4;
+  font-size:8px;color:var(--g);opacity:0;transition:opacity .2s;
+  font-family:'Share Tech Mono',monospace;letter-spacing:1px;
+}
+.nft.minted .minted-mark{opacity:1;}
+
+/* ── MODAL ─────────────────────────────────── */
+#modal{position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.9);
+  display:none;align-items:center;justify-content:center;padding:16px;}
+#modal.open{display:flex;}
+#modal-box{
+  background:var(--bg2);border:1px solid var(--border);
+  max-width:600px;width:100%;border-radius:3px;overflow:hidden;
+  display:grid;grid-template-columns:240px 1fr;max-height:90vh;
+}
+#m-art{background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px;min-height:280px;}
+#m-art svg{width:200px;height:280px;}
+#m-info{padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+.mi-h{font-family:'VT323',monospace;font-size:26px;line-height:1;}
+.mi-sub{font-size:8px;color:var(--gmid);letter-spacing:3px;}
+.mi-sec{font-size:8px;color:var(--gmid);letter-spacing:3px;border-bottom:1px solid var(--gdim);padding-bottom:2px;margin-top:4px;}
+.mi-row{display:flex;justify-content:space-between;font-size:9px;}
+.mi-k{color:var(--gmid)}.mi-v{font-family:'VT323',monospace;font-size:13px;}
+.mi-hash-txt{font-size:7px;color:var(--gdim);word-break:break-all;line-height:1.7;margin-top:4px;}
+.m-btn{padding:5px;border:1px solid;background:transparent;font-family:'Share Tech Mono',monospace;font-size:9px;cursor:pointer;letter-spacing:1px;transition:all .1s;}
+.m-btn-mint{border-color:var(--g);color:var(--g);}
+.m-btn-mint:hover{background:rgba(0,255,136,.07);}
+.m-btn-close{border-color:var(--gdim);color:var(--gmid);}
+.m-btn-close:hover{border-color:var(--g);color:var(--g);}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9000;
+  background:var(--bg2);border:1px solid var(--g);padding:8px 20px;
+  font-size:10px;color:var(--g);display:none;letter-spacing:1px;
+  box-shadow:0 0 20px rgba(0,255,136,.25);white-space:nowrap;
+}
+
+/* INFINITY LOADER */
+#loader{
+  text-align:center;padding:20px;color:var(--gmid);font-size:10px;letter-spacing:3px;display:none;
+}
+
+/* EMPTY */
+#empty{text-align:center;padding:60px 20px;color:var(--gdim);display:none;}
+#empty .e-logo{font-family:'VT323',monospace;font-size:36px;margin-bottom:8px;}
+</style>
+</head>
+<body>
+
+<div id="cur"></div>
+
+<!-- HEADER -->
+<div id="header">
+  <div class="hrow1">
+    <div>
+      <div class="logo">CERN<em>EL</em>//FORGE</div>
+      <div class="logo"><small>INFINITE PROCEDURAL CARD SET — ON-CHAIN SVG</small></div>
+    </div>
+    <div class="chip chip-r">CLASH</div>
+    <div class="chip chip-c">CONDUIT</div>
+    <div class="chip chip-g">∞ GEN</div>
+    <div class="chip chip-v">ETH FORK</div>
+
+    <div class="hstats">
+      <span class="hs">CARDS: <span id="st-total">0</span></span>
+      <span class="hs">MINTED: <span id="st-minted">0</span></span>
+      <span class="hs">SEED: <span id="st-seed">—</span></span>
+    </div>
+  </div>
+
+  <div class="hrow2">
+    <div class="ctrl-group">
+      <span class="ctrl-label">GENERATE//</span>
+      <button class="btn btn-g" id="b-gen1">+1</button>
+      <button class="btn btn-g" id="b-gen6">+6</button>
+      <button class="btn btn-g" id="b-gen24">+24</button>
+      <button class="btn btn-g" id="b-gen100">+100</button>
+      <button class="btn btn-c" id="b-inf">∞ AUTO</button>
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">TYPE//</span>
+      <button class="type-btn tb-ov on" data-t="OVERSHOOT">OVER</button>
+      <button class="type-btn tb-dl on" data-t="DEADLOCK">DEAD</button>
+      <button class="type-btn tb-bl on" data-t="BLOOM">BLOOM</button>
+      <button class="type-btn tb-re on" data-t="RELAY">RELAY</button>
+      <button class="type-btn tb-ve on" data-t="VECTOR">VECT</button>
+      <button class="type-btn tb-cl on" data-t="CLUSTER">CLUST</button>
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">SEED//</span>
+      <input class="seed-input" id="seed-input" placeholder="enter seed string..." />
+      <button class="btn btn-y" id="b-seed">FORGE SEED</button>
+    </div>
+    <div class="ctrl-group">
+      <button class="btn btn-c" id="b-mint-all">◈ MINT ALL</button>
+      <button class="btn btn-y" id="b-export">↓ JSON</button>
+      <button class="btn btn-r" id="b-clear">✕ CLEAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div id="filter-bar">
+  <span class="fb-label">FILTER//</span>
+  <button class="fb-btn active" data-f="ALL">ALL</button>
+  <button class="fb-btn" data-f="CLASH">CLASH FAMILY</button>
+  <button class="fb-btn" data-f="CONDUIT">CONDUIT FAMILY</button>
+  <button class="fb-btn" data-f="OVERSHOOT" style="color:var(--overshoot-p)">OVERSHOOT</button>
+  <button class="fb-btn" data-f="DEADLOCK" style="color:var(--deadlock-p)">DEADLOCK</button>
+  <button class="fb-btn" data-f="BLOOM" style="color:var(--bloom-p)">BLOOM</button>
+  <button class="fb-btn" data-f="RELAY" style="color:var(--relay-p)">RELAY</button>
+  <button class="fb-btn" data-f="VECTOR" style="color:var(--vector-p)">VECTOR</button>
+  <button class="fb-btn" data-f="CLUSTER" style="color:var(--cluster-p)">CLUSTER</button>
+  <button class="fb-btn" data-f="MINTED" style="color:var(--g)">MINTED ◈</button>
+  <button class="fb-btn" data-f="LEGENDARY" style="color:#ffffff">LEGENDARY</button>
+</div>
+
+<!-- GRID -->
+<div id="grid"></div>
+<div id="loader">// GENERATING CARDS...</div>
+<div id="empty">
+  <div class="e-logo">// FORGE EMPTY</div>
+  <div style="color:var(--gmid);font-size:10px;letter-spacing:2px">SELECT TYPES & GENERATE TO BEGIN</div>
+</div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div id="modal-box">
+    <div id="m-art"></div>
+    <div id="m-info">
+      <div class="mi-h" id="m-name">—</div>
+      <div class="mi-sub" id="m-sub">—</div>
+      <div class="mi-sec">COMBAT STATS</div>
+      <div id="m-stats"></div>
+      <div class="mi-sec">4-SIDE VALUES</div>
+      <div id="m-sides"></div>
+      <div class="mi-sec">BLOCKCHAIN</div>
+      <div id="m-chain"></div>
+      <div class="mi-hash-txt" id="m-hash"></div>
+      <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px;">
+        <button class="m-btn m-btn-mint" id="m-mint-btn">◈ MINT THIS CARD</button>
+        <button class="m-btn m-btn-close" id="m-close">[ CLOSE ]</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// CERNEL//FORGE — Infinite Procedural Card Generator
+// Clash (Overshoot/Deadlock/Bloom) + Conduit (Relay/Vector/Cluster)
+// Pure on-chain SVG art — deterministic from token hash
+// ═══════════════════════════════════════════════════════════════════
+
+// ── CURSOR ───────────────────────────────────────────────────────
+const $cur = document.getElementById('cur');
+document.addEventListener('mousemove', e => { $cur.style.left=e.clientX+'px'; $cur.style.top=e.clientY+'px'; });
+
+// ── UTILS ────────────────────────────────────────────────────────
+const ri   = (a,b) => Math.floor(a + Math.random()*(b-a+1));
+const rf   = (a,b) => a + Math.random()*(b-a);
+const rhx  = n    => Math.floor(Math.random()*Math.pow(16,n)).toString(16).padStart(n,'0').toUpperCase();
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const f2   = n => n.toFixed(2);
+const f4   = n => n.toFixed(4);
+
+// Seeded deterministic RNG from a hash string
+function mkRng(seed) {
+  let s = 0xdeadbeef;
+  for(let i=0;i<seed.length;i++) { s = (Math.imul(s ^ seed.charCodeAt(i), 0x9e3779b9) | 0); s ^= s >>> 16; }
+  return () => {
+    s ^= s << 13; s ^= s >>> 17; s ^= s << 5;
+    return ((s >>> 0) / 4294967296);
+  };
+}
+
+// ── CARD DEFINITIONS ─────────────────────────────────────────────
+const FAMILIES = {
+  CLASH:   { subtypes:['OVERSHOOT','DEADLOCK','BLOOM'], icon:'⚡' },
+  CONDUIT: { subtypes:['RELAY','VECTOR','CLUSTER'],     icon:'◈' },
+};
+
+const PALETTES = {
+  OVERSHOOT:{ p:'#ff2200', s:'#ff7733', a:'#ffcc99', bg:'#0d0200', glow:0.5 },
+  DEADLOCK: { p:'#8855ff', s:'#cc99ff', a:'#eeddff', bg:'#04020d', glow:0.4 },
+  BLOOM:    { p:'#00ff88', s:'#44ffaa', a:'#ccffee', bg:'#001a0e', glow:0.5 },
+  RELAY:    { p:'#00ccff', s:'#0077aa', a:'#aaeeff', bg:'#001520', glow:0.45 },
+  VECTOR:   { p:'#ffdd00', s:'#aa8800', a:'#fff5aa', bg:'#120e00', glow:0.4 },
+  CLUSTER:  { p:'#ff0077', s:'#880044', a:'#ffaacc', bg:'#110008', glow:0.45 },
+};
+
+const ABILITIES = {
+  OVERSHOOT:['POWER SURGE','FLUX EXCEED','REDLINE BURST','OVERLOAD CASCADE','LIMIT BREAK','ENERGY SPIKE','CIRCUIT BLOW'],
+  DEADLOCK: ['GRIDLOCK HOLD','STASIS CAST','NULL RESOLVE','MUTUAL FREEZE','TIE ANCHOR','STATIC LOCK','BIND FIELD'],
+  BLOOM:    ['TREE BLOOM','ROOT SYNC','CHAIN GROWTH','FOREST RELAY','SEED CAST','BRANCH BIND','GROWTH SURGE'],
+  RELAY:    ['NODE BRIDGE','SIGNAL CASCADE','MULTI-HOP TX','RELAY BURST','CHAIN FORWARD','BROADCAST LOCK','HOP SYNC'],
+  VECTOR:   ['PATH LOCK','DIRECTION HOLD','LINE TRACE','AXIS ALIGN','VECTOR CAST','ROUTE SEAL','TRAJECTORY LOCK'],
+  CLUSTER:  ['GROUP SYNC','SWARM CAST','NODE BIND','MASS RELAY','CLUSTER MERGE','SWARM SURGE','BIND CLUSTER'],
+};
+
+const RARITY = ['COMMON','UNCOMMON','RARE','EPIC','LEGENDARY'];
+const RARITY_W = [0.44, 0.27, 0.17, 0.09, 0.03];
+const RARITY_COLORS = { COMMON:'#334433', UNCOMMON:'#446644', RARE:'#aaaaff', EPIC:'#ffaa44', LEGENDARY:'#ffffff' };
+
+const SPECIAL_MODS = {
+  OVERSHOOT: { energyBoost:+20, powerMult:1.3 },
+  DEADLOCK:  { energyBoost:0,   powerMult:1.0 },
+  BLOOM:     { energyBoost:+10, powerMult:1.1 },
+  RELAY:     { energyBoost:+5,  powerMult:1.15 },
+  VECTOR:    { energyBoost:+8,  powerMult:1.2 },
+  CLUSTER:   { energyBoost:+12, powerMult:1.25 },
+};
+
+// ── STATE ────────────────────────────────────────────────────────
+let CARDS = [];
+let tokenSeq = 0;
+let filter = 'ALL';
+let enabledTypes = new Set(['OVERSHOOT','DEADLOCK','BLOOM','RELAY','VECTOR','CLUSTER']);
+let autoInterval = null;
+let modalCardId = null;
+let globalSeed = null;
+let seedCounter = 0;
+
+// ── CARD GENERATION ──────────────────────────────────────────────
+function pickRarity(rng) {
+  const r = rng(); let c = 0;
+  for(let i=0;i<RARITY.length;i++) { c += RARITY_W[i]; if(r<c) return RARITY[i]; }
+  return 'COMMON';
+}
+
+function genCard(subtypeOverride=null) {
+  // Pick subtype from enabled types
+  const pool = [...enabledTypes];
+  if(!pool.length) return null;
+  const subtype = subtypeOverride || pool[ri(0,pool.length-1)];
+  const family = FAMILIES.CLASH.subtypes.includes(subtype) ? 'CLASH' : 'CONDUIT';
+
+  tokenSeq++;
+  // Hash: seeded if global seed set, else random
+  const hashSeed = globalSeed ? `${globalSeed}-${tokenSeq}-${seedCounter++}` : null;
+  const hash = hashSeed
+    ? (()=>{ let h=0; for(let c of hashSeed) h=(Math.imul(h,31)+c.charCodeAt(0))|0; return (((h>>>0)*0x9e3779b9)>>>0).toString(16).padStart(8,'0').toUpperCase(); })()
+      + rhx(8) + rhx(8) + rhx(8) + rhx(8) + rhx(8) + rhx(8) + rhx(4)
+    : rhx(64);
+
+  const rng = mkRng(hash);
+  const pal = PALETTES[subtype];
+  const mod = SPECIAL_MODS[subtype];
+  const rarity = pickRarity(rng);
+
+  const baseEnergy = ri(15, 85);
+  const energy = clamp(baseEnergy + mod.energyBoost, 1, 99);
+  const basePower = ri(500, 8500);
+  const power = Math.floor(basePower * mod.powerMult * ({COMMON:1,UNCOMMON:1.2,RARE:1.5,EPIC:2.1,LEGENDARY:3.5}[rarity]));
+  const yaw=ri(0,359), roll=ri(0,179), pitch=ri(0,359);
+  const axisScore = +((yaw/360*0.4)+(roll/180*0.3)+(pitch/360*0.3)).toFixed(4);
+
+  // 4-side power distribution
+  const total=9999.99, floor=1333.13;
+  const sides=[floor,floor,floor,floor];
+  const rem=total-floor*4;
+  const bf=rng()<0.75;
+  const w=bf?[rng()+0.5,rng()+0.5,rng()+0.5,rng()*4+4]:Array(4).fill(0).map(()=>rng()*4+1);
+  const ws=w.reduce((a,b)=>a+b,0);
+  w.forEach((v,i)=>sides[i]+=(v/ws)*rem);
+
+  const abilities = ABILITIES[subtype];
+  const ability = abilities[Math.floor(rng()*abilities.length)];
+
+  const rarityMult = {COMMON:1,UNCOMMON:1.5,RARE:2.5,EPIC:5,LEGENDARY:12}[rarity];
+  const mintPrice = +(0.001*rarityMult*(energy/10)).toFixed(6);
+
+  const id = `CRNL-${subtype.slice(0,3)}-${rhx(3)}-${rhx(4)}`;
+
+  return {
+    id, tokenId:tokenSeq, hash, family, subtype, pal, rarity,
+    energy, power, yaw, roll, pitch, axisScore,
+    top:+sides[0].toFixed(2), left:+sides[1].toFixed(2),
+    right:+sides[2].toFixed(2), bottom:+sides[3].toFixed(2),
+    ability, mintPrice, minted:false,
+    contractAddr:'0x'+rhx(40),
+    blockNum:ri(16000000,20000000),
+    gas:ri(21000,180000),
+    ts:Date.now(),
+  };
+}
+
+// ── SVG ART ENGINE ────────────────────────────────────────────────
+// Each subtype has its own generative visual language.
+// Art is 100% deterministic from the card's hash via mkRng.
+
+function buildSVG(card) {
+  const rng = mkRng(card.hash);
+  const p = card.pal;
+  const W=200, H=280;
+  const cx=W/2, cy=H*0.38;
+
+  // Unique gradient/filter IDs per card
+  const uid = card.tokenId;
+
+  let defs = `<defs>
+    <radialGradient id="bg${uid}" cx="${cx}" cy="${cy}" r="${W*0.8}" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="${p.p}" stop-opacity="${(rng()*0.14+0.04).toFixed(3)}"/>
+      <stop offset="100%" stop-color="${p.bg}" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="gw${uid}">
+      <feGaussianBlur stdDeviation="2.5" result="b"/>
+      <feComposite in="SourceGraphic" in2="b" operator="over"/>
+    </filter>
+    <filter id="sofgw${uid}">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="tf${uid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${p.bg}" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="${p.bg}" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="bf${uid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${p.bg}" stop-opacity="0"/>
+      <stop offset="100%" stop-color="${p.bg}" stop-opacity="1"/>
+    </linearGradient>
+    <radialGradient id="vig${uid}" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.5)"/>
+    </radialGradient>
+  </defs>`;
+
+  // === BACKGROUND LAYER ===
+  let bg = `<rect width="${W}" height="${H}" fill="${p.bg}"/>
+  <rect width="${W}" height="${H}" fill="url(#bg${uid})"/>`;
+
+  // Scan lines
+  const lineCount = Math.floor(rng()*8)+4;
+  for(let i=0;i<lineCount;i++) {
+    const y=rng()*H;
+    bg+=`<rect x="0" y="${f2(y)}" width="${W}" height="${f2(rng()*0.8+0.3)}" fill="${p.p}" opacity="${f4(rng()*0.05+0.01)}"/>`;
+  }
+  // Star-field dots
+  const starN = Math.floor(rng()*30)+15;
+  for(let i=0;i<starN;i++) {
+    const sx=rng()*W, sy=rng()*H, sr=rng()*1.2+0.2;
+    bg+=`<circle cx="${f2(sx)}" cy="${f2(sy)}" r="${f2(sr)}" fill="${p.a}" opacity="${f4(rng()*0.25+0.03)}"/>`;
+  }
+
+  // === TYPE-SPECIFIC ART ===
+  let art = '';
+  switch(card.subtype) {
+    case 'OVERSHOOT': art = artOvershoot(card, rng, W, H, cx, cy, p, uid); break;
+    case 'DEADLOCK':  art = artDeadlock(card, rng, W, H, cx, cy, p, uid);  break;
+    case 'BLOOM':     art = artBloom(card, rng, W, H, cx, cy, p, uid);     break;
+    case 'RELAY':     art = artRelay(card, rng, W, H, cx, cy, p, uid);     break;
+    case 'VECTOR':    art = artVector(card, rng, W, H, cx, cy, p, uid);    break;
+    case 'CLUSTER':   art = artCluster(card, rng, W, H, cx, cy, p, uid);   break;
+  }
+
+  // === OVERLAYS ===
+  const rcol = RARITY_COLORS[card.rarity];
+  // Rarity shimmer lines
+  let shimmer = '';
+  const rTier = RARITY.indexOf(card.rarity);
+  if(rTier>=1) {
+    const sN=rTier*2;
+    for(let i=0;i<sN;i++) {
+      const sy2=rng()*H;
+      shimmer+=`<rect x="0" y="${f2(sy2)}" width="${W}" height="${f2(rng()*2+0.5)}" fill="${p.a}" opacity="${f4(rng()*rTier*0.04+0.01)}"/>`;
+    }
+  }
+  if(card.rarity==='LEGENDARY') {
+    shimmer+=`<rect x="0" y="0" width="${W*2}" height="${H}" fill="${p.a}" opacity="0.03" transform="rotate(-15,0,${H/2})"/>`;
+  }
+
+  // Frame fades
+  const overlays = `
+  <rect width="${W}" height="${H}" fill="url(#vig${uid})"/>
+  <rect y="0" width="${W}" height="55" fill="url(#tf${uid})"/>
+  <rect y="${H-75}" width="${W}" height="75" fill="url(#bf${uid})"/>`;
+
+  // Header text
+  const header = `
+  <text x="9" y="16" font-family="'Share Tech Mono',monospace" font-size="7" fill="${p.p}" opacity="0.65" letter-spacing="2">${card.family}//</text>
+  <text x="${W-9}" y="16" font-family="'Share Tech Mono',monospace" font-size="7" fill="${p.p}" opacity="0.4" text-anchor="end">#${card.tokenId}</text>`;
+
+  // Footer text
+  const footer = `
+  <text x="9" y="${H-52}" font-family="'Share Tech Mono',monospace" font-size="6.5" fill="${p.s}" opacity="0.7" letter-spacing="1">${card.ability}</text>
+  <text x="9" y="${H-36}" font-family="'Orbitron',sans-serif" font-weight="700" font-size="15" fill="${p.p}" filter="url(#gw${uid})">${card.subtype}</text>
+  <text x="9" y="${H-20}" font-family="'Share Tech Mono',monospace" font-size="7" fill="${p.s}" letter-spacing="1">${card.id.slice(5,14)}</text>
+  <text x="${W-9}" y="${H-20}" font-family="'Share Tech Mono',monospace" font-size="7" fill="${p.s}" text-anchor="end">E:${card.energy}</text>
+  <text x="9" y="${H-8}" font-family="'Share Tech Mono',monospace" font-size="6" fill="${p.s}" opacity="0.4">${card.hash.slice(0,22)}...</text>`;
+
+  // Rarity border
+  const border = `
+  <rect x="0" y="0" width="${W}" height="${H}" fill="none" stroke="${rcol}" stroke-width="1" opacity="0.5"/>
+  <rect x="0" y="0" width="${W}" height="1.5" fill="${rcol}" opacity="0.8"/>
+  <rect x="0" y="${H-1.5}" width="${W}" height="1.5" fill="${rcol}" opacity="0.5"/>`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+  ${defs}${bg}${art}${shimmer}${overlays}${header}${footer}${border}
+</svg>`;
+}
+
+// ── OVERSHOOT ART ────────────────────────────────────────────────
+// Explosive radiating shards from hot core — different every card
+function artOvershoot(card, rng, W, H, cx, cy, p, uid) {
+  let out = '';
+  const shardN = Math.floor(rng()*14)+10;
+  const coreR = rng()*8+6;
+
+  // Background heat bloom
+  out+=`<radialGradient id="heat${uid}" cx="${cx}" cy="${cy}" r="${H*0.45}" gradientUnits="userSpaceOnUse">
+    <stop offset="0%" stop-color="${p.p}" stop-opacity="0.3"/>
+    <stop offset="50%" stop-color="${p.s}" stop-opacity="0.08"/>
+    <stop offset="100%" stop-color="transparent" stop-opacity="0"/>
+  </radialGradient>
+  <ellipse cx="${cx}" cy="${cy}" rx="${H*0.45}" ry="${H*0.35}" fill="url(#heat${uid})"/>`;
+
+  // Shards — curved Bezier paths outward
+  for(let i=0;i<shardN;i++) {
+    const baseA = (i/shardN)*Math.PI*2 + rng()*0.4;
+    const len = H*(0.12 + rng()*0.22);
+    const width = rng()*3+0.5;
+    const x2 = cx + Math.cos(baseA)*len;
+    const y2 = cy + Math.sin(baseA)*len;
+    const jx = cx + Math.cos(baseA)*len*0.45 + (rng()-0.5)*25;
+    const jy = cy + Math.sin(baseA)*len*0.45 + (rng()-0.5)*25;
+    const op = f4(rng()*0.55+0.25);
+    const col = rng()>0.65 ? p.a : rng()>0.35 ? p.p : p.s;
+    out+=`<path d="M${f2(cx)},${f2(cy)} Q${f2(jx)},${f2(jy)} ${f2(x2)},${f2(y2)}"
+      fill="none" stroke="${col}" stroke-width="${f2(width)}" opacity="${op}"
+      stroke-linecap="round"/>`;
+    // Shard tip sparks
+    if(rng()>0.5) {
+      out+=`<circle cx="${f2(x2)}" cy="${f2(y2)}" r="${f2(rng()*2+0.5)}" fill="${col}" opacity="${f4(rng()*0.6+0.2)}"/>`;
+    }
+  }
+
+  // Concentric burst rings
+  const ringN = Math.floor(rng()*4)+3;
+  for(let i=0;i<ringN;i++) {
+    const r = coreR*1.5 + i*(H*0.06 + rng()*H*0.03);
+    const op = f4(0.6-i*0.12);
+    const sw = f2(1.5-i*0.25);
+    out+=`<circle cx="${cx}" cy="${cy}" r="${f2(r)}" fill="none" stroke="${p.p}" stroke-width="${sw}" opacity="${op}"/>`;
+  }
+
+  // Energy number fragments floating
+  for(let i=0;i<4;i++) {
+    const fx = cx + (rng()-0.5)*H*0.4, fy = cy + (rng()-0.5)*H*0.3;
+    out+=`<text x="${f2(fx)}" y="${f2(fy)}" font-family="'Share Tech Mono',monospace" font-size="${f2(rng()*5+5)}" fill="${p.a}" opacity="${f4(rng()*0.3+0.1)}" text-anchor="middle">${ri(0,999)}</text>`;
+  }
+
+  // Hot core
+  out+=`<circle cx="${cx}" cy="${cy}" r="${f2(coreR)}" fill="${p.p}" filter="url(#sofgw${uid})" opacity="0.9"/>`;
+  out+=`<circle cx="${cx}" cy="${cy}" r="${f2(coreR*0.55)}" fill="${p.a}" opacity="0.95"/>`;
+  return out;
+}
+
+// ── DEADLOCK ART ─────────────────────────────────────────────────
+// Two opposing forces frozen at center — geometric lattice/grid
+function artDeadlock(card, rng, W, H, cx, cy, p, uid) {
+  let out = '';
+  const gridN = Math.floor(rng()*4)+5;
+  const gw = W*0.75, gh = H*0.5;
+  const gx = cx-gw/2, gy = cy-gh/2;
+
+  // Background lattice
+  for(let i=0;i<=gridN;i++) {
+    const x = gx + i*(gw/gridN);
+    const y = gy + i*(gh/gridN);
+    const op = f4(rng()*0.2+0.08);
+    out+=`<line x1="${f2(x)}" y1="${f2(gy)}" x2="${f2(x)}" y2="${f2(gy+gh)}" stroke="${p.s}" stroke-width="0.5" opacity="${op}"/>`;
+    out+=`<line x1="${f2(gx)}" y1="${f2(y)}" x2="${f2(gx+gw)}" y2="${f2(y)}" stroke="${p.s}" stroke-width="0.5" opacity="${op}"/>`;
+  }
+
+  // Force field — ellipse layers around center
+  const ellN = Math.floor(rng()*3)+2;
+  for(let i=0;i<ellN;i++) {
+    const rx = gw*0.3*(i+1), ry = gh*0.25*(i+1);
+    out+=`<ellipse cx="${cx}" cy="${cy}" rx="${f2(rx)}" ry="${f2(ry)}" fill="none" stroke="${p.p}" stroke-width="${f2(0.8-i*0.15)}" opacity="${f4(0.4-i*0.08)}" stroke-dasharray="${3+i} ${2+i}"/>`;
+  }
+
+  // Two opposing wedge arrows meeting at center — frozen
+  const arrowLen = W*0.28;
+  // Left arrow
+  out+=`<line x1="${f2(cx-arrowLen*1.1)}" y1="${cy}" x2="${f2(cx-8)}" y2="${cy}" stroke="${p.p}" stroke-width="2.5" opacity="0.9"/>`;
+  out+=`<polygon points="${cx-8},${cy} ${cx-22},${cy-8} ${cx-22},${cy+8}" fill="${p.p}" opacity="0.9"/>`;
+  // Right arrow
+  out+=`<line x1="${f2(cx+arrowLen*1.1)}" y1="${cy}" x2="${f2(cx+8)}" y2="${cy}" stroke="${p.s}" stroke-width="2.5" opacity="0.9"/>`;
+  out+=`<polygon points="${cx+8},${cy} ${cx+22},${cy-8} ${cx+22},${cy+8}" fill="${p.s}" opacity="0.9"/>`;
+
+  // Center deadlock crystal — frozen fractured square
+  const cSize = rng()*5+8;
+  out+=`<rect x="${f2(cx-cSize)}" y="${f2(cy-cSize)}" width="${f2(cSize*2)}" height="${f2(cSize*2)}"
+    fill="${p.bg}" stroke="${p.a}" stroke-width="2" opacity="0.95"
+    transform="rotate(${f2(rng()*20+30)},${cx},${cy})"/>`;
+  out+=`<rect x="${f2(cx-cSize*0.55)}" y="${f2(cy-cSize*0.55)}" width="${f2(cSize*1.1)}" height="${f2(cSize*1.1)}"
+    fill="${p.p}" opacity="0.7"
+    transform="rotate(${f2(rng()*15+20)},${cx},${cy})"/>`;
+
+  // Floating hex fragments  
+  const hexN = Math.floor(rng()*6)+3;
+  for(let i=0;i<hexN;i++) {
+    const hx=cx+(rng()-0.5)*W*0.65, hy=cy+(rng()-0.5)*H*0.4;
+    const hs=rng()*5+2;
+    const hexPts=Array(6).fill(0).map((_,k)=>{
+      const a=(k/6)*Math.PI*2;
+      return `${f2(hx+Math.cos(a)*hs)},${f2(hy+Math.sin(a)*hs)}`;
+    }).join(' ');
+    out+=`<polygon points="${hexPts}" fill="none" stroke="${p.p}" stroke-width="0.5" opacity="${f4(rng()*0.4+0.1)}"/>`;
+  }
+  return out;
+}
+
+// ── BLOOM ART ────────────────────────────────────────────────────
+// Organic recursive branch tree growing from root — unique every card
+function artBloom(card, rng, W, H, cx, cy, p, uid) {
+  let out = '';
+  const segs = [];
+
+  // Recursive branch builder — stored as segments
+  function branch(x1, y1, angle, len, depth, life) {
+    if(depth<0||len<2.5||life<=0) return;
+    const x2 = x1+Math.cos(angle)*len;
+    const y2 = y1+Math.sin(angle)*len;
+    segs.push({x1,y1,x2,y2,depth,len});
+    const spread = 0.35 + rng()*0.35;
+    const decay  = 0.60 + rng()*0.15;
+    branch(x2, y2, angle-spread, len*decay, depth-1, life-1);
+    branch(x2, y2, angle+spread, len*decay, depth-1, life-1);
+    if(rng()>0.55) branch(x2, y2, angle, len*(0.45+rng()*0.2), depth-2, life-2);
+  }
+
+  // One main trunk, two side shoots
+  const depth = Math.floor(rng()*2)+5;
+  branch(cx, H*0.65, -Math.PI/2, H*0.16, depth, depth+2);
+  if(rng()>0.4) branch(cx+(rng()-0.5)*20, H*0.65, -Math.PI/2+0.8, H*0.09, depth-2, depth);
+  if(rng()>0.4) branch(cx+(rng()-0.5)*20, H*0.65, -Math.PI/2-0.8, H*0.09, depth-2, depth);
+
+  // Draw segments — deep=thick/bright, shallow=thin/dim
+  const maxD = segs.reduce((a,s)=>Math.max(a,s.depth),0);
+  segs.forEach(s=>{
+    const t = s.depth/maxD;
+    const col = t>0.6 ? p.p : t>0.3 ? p.s : p.a;
+    const sw  = f2(t*2.5+0.3);
+    const op  = f4(t*0.55+0.2);
+    out+=`<line x1="${f2(s.x1)}" y1="${f2(s.y1)}" x2="${f2(s.x2)}" y2="${f2(s.y2)}" stroke="${col}" stroke-width="${sw}" opacity="${op}" stroke-linecap="round"/>`;
+  });
+
+  // Bloom nodes at shallow tips (leaf-like circles)
+  const tips = segs.filter(s=>s.len<5);
+  tips.forEach(s=>{
+    const br = rng()*3+1.5;
+    out+=`<circle cx="${f2(s.x2)}" cy="${f2(s.y2)}" r="${f2(br)}" fill="${p.a}" opacity="${f4(rng()*0.5+0.3)}"/>`;
+    if(rng()>0.6) out+=`<circle cx="${f2(s.x2)}" cy="${f2(s.y2)}" r="${f2(br*1.8)}" fill="none" stroke="${p.p}" stroke-width="0.5" opacity="${f4(rng()*0.3+0.1)}"/>`;
+  });
+
+  // Root glow
+  out+=`<circle cx="${cx}" cy="${H*0.65}" r="${f2(rng()*4+4)}" fill="${p.p}" filter="url(#sofgw${uid})" opacity="0.6"/>`;
+
+  // Floating spores
+  const sporeN = Math.floor(rng()*10)+5;
+  for(let i=0;i<sporeN;i++) {
+    const sx=rng()*W*0.85+W*0.075, sy=rng()*H*0.6+H*0.05, sr=rng()*1.5+0.3;
+    out+=`<circle cx="${f2(sx)}" cy="${f2(sy)}" r="${f2(sr)}" fill="${p.a}" opacity="${f4(rng()*0.3+0.05)}"/>`;
+  }
+  return out;
+}
+
+// ── RELAY ART ────────────────────────────────────────────────────
+// PCB circuit topology — nodes connected by orthogonal traces + signal pulses
+function artRelay(card, rng, W, H, cx, cy, p, uid) {
+  let out = '';
+  const nodeN = Math.floor(rng()*5)+4;
+  const nodes = [];
+
+  // Place nodes avoiding center label area
+  for(let i=0;i<nodeN;i++) {
+    nodes.push({
+      x: W*0.1+rng()*W*0.8,
+      y: H*0.1+rng()*H*0.52,
+      main: i===0||i===nodeN-1,
+    });
+  }
+
+  // Orthogonal L-routed traces between consecutive nodes
+  for(let i=0;i<nodes.length-1;i++) {
+    const a=nodes[i], b=nodes[i+1];
+    const mx=(a.x+b.x)/2 + (rng()-0.5)*20;
+    const op = f4(rng()*0.3+0.45);
+    const dash = rng()>0.5 ? 'stroke-dasharray="4 3"':'';
+    out+=`<path d="M${f2(a.x)},${f2(a.y)} L${f2(mx)},${f2(a.y)} L${f2(mx)},${f2(b.y)} L${f2(b.x)},${f2(b.y)}"
+      fill="none" stroke="${p.p}" stroke-width="${f2(rng()*0.5+0.8)}" opacity="${op}" ${dash}/>`;
+    // Via square at elbow
+    out+=`<rect x="${f2(mx-3)}" y="${f2(a.y-3)}" width="6" height="6" fill="${p.s}" opacity="${f4(rng()*0.3+0.4)}" rx="1"/>`;
+  }
+
+  // Random cross-traces for dense networks
+  if(nodeN>5) {
+    const xt = Math.floor(rng()*2)+1;
+    for(let i=0;i<xt;i++) {
+      const na=nodes[ri(0,nodes.length-1)], nb=nodes[ri(0,nodes.length-1)];
+      out+=`<line x1="${f2(na.x)}" y1="${f2(na.y)}" x2="${f2(nb.x)}" y2="${f2(nb.y)}"
+        stroke="${p.a}" stroke-width="0.5" opacity="${f4(rng()*0.2+0.1)}" stroke-dasharray="2 5"/>`;
+    }
+  }
+
+  // Node shapes
+  nodes.forEach(n=>{
+    if(n.main) {
+      out+=`<rect x="${f2(n.x-7)}" y="${f2(n.y-7)}" width="14" height="14" fill="${p.p}" opacity="0.9" rx="1"/>`;
+      out+=`<rect x="${f2(n.x-3.5)}" y="${f2(n.y-3.5)}" width="7" height="7" fill="${p.bg}" opacity="0.85"/>`;
+    } else {
+      const r=rng()*2.5+2.5;
+      out+=`<circle cx="${f2(n.x)}" cy="${f2(n.y)}" r="${f2(r)}" fill="${p.p}" opacity="0.85"/>`;
+      out+=`<circle cx="${f2(n.x)}" cy="${f2(n.y)}" r="${f2(r*0.45)}" fill="${p.bg}" opacity="0.75"/>`;
+    }
+  });
+
+  // Signal pulse strip
+  const pulseY = H*0.63;
+  out+=`<line x1="${W*0.05}" y1="${pulseY}" x2="${W*0.95}" y2="${pulseY}" stroke="${p.s}" stroke-width="0.6" opacity="0.3"/>`;
+  const barN = Math.floor(rng()*8)+6;
+  for(let i=0;i<barN;i++) {
+    const bx=W*0.05+(i/barN)*W*0.9, bh=rng()*18+3;
+    out+=`<rect x="${f2(bx)}" y="${f2(pulseY-bh)}" width="${f2(W*0.9/barN*0.6)}" height="${f2(bh)}" fill="${p.p}" opacity="${f4(rng()*0.45+0.2)}"/>`;
+  }
+  return out;
+}
+
+// ── VECTOR ART ───────────────────────────────────────────────────
+// Directional flow field — streamlines + arrow heads + path traces
+function artVector(card, rng, W, H, cx, cy, p, uid) {
+  let out = '';
+  const pathN = Math.floor(rng()*8)+6;
+  const baseAngle = (card.yaw/360)*Math.PI*2;
+
+  // Flow field streamlines
+  for(let i=0;i<pathN;i++) {
+    const startX = rng()*W*0.9+W*0.05;
+    const startY = H*0.1+rng()*H*0.5;
+    // Bezier flow path
+    const cp1x=startX+(rng()-0.5)*60, cp1y=startY+(rng()-0.5)*40;
+    const cp2x=startX+Math.cos(baseAngle+rng()*0.6)*80, cp2y=startY+Math.sin(baseAngle+rng()*0.6)*50;
+    const ex=startX+Math.cos(baseAngle)*100, ey=startY+Math.sin(baseAngle)*60;
+    const op=f4(rng()*0.4+0.2);
+    const sw=f2(rng()*1+0.5);
+    out+=`<path d="M${f2(startX)},${f2(startY)} C${f2(cp1x)},${f2(cp1y)} ${f2(cp2x)},${f2(cp2y)} ${f2(ex)},${f2(ey)}"
+      fill="none" stroke="${p.p}" stroke-width="${sw}" opacity="${op}"/>`;
+    // Arrow head at end
+    if(rng()>0.4) {
+      const aLen=8, aW=4;
+      const perpA=baseAngle+Math.PI/2;
+      out+=`<polygon points="${f2(ex)},${f2(ey)} ${f2(ex-Math.cos(baseAngle)*aLen+Math.cos(perpA)*aW)},${f2(ey-Math.sin(baseAngle)*aLen+Math.sin(perpA)*aW)} ${f2(ex-Math.cos(baseAngle)*aLen-Math.cos(perpA)*aW)},${f2(ey-Math.sin(baseAngle)*aLen-Math.sin(perpA)*aW)}"
+        fill="${p.p}" opacity="${op}"/>`;
+    }
+  }
+
+  // Central axis indicator
+  const axLen = H*0.22;
+  out+=`<line x1="${f2(cx-Math.cos(baseAngle)*axLen*0.5)}" y1="${f2(cy-Math.sin(baseAngle)*axLen*0.5)}"
+    x2="${f2(cx+Math.cos(baseAngle)*axLen)}" y2="${f2(cy+Math.sin(baseAngle)*axLen)}"
+    stroke="${p.a}" stroke-width="2" opacity="0.85"/>`;
+  // Main arrow head
+  const perpMain=baseAngle+Math.PI/2;
+  const ex2=cx+Math.cos(baseAngle)*axLen, ey2=cy+Math.sin(baseAngle)*axLen;
+  out+=`<polygon points="${f2(ex2)},${f2(ey2)} ${f2(ex2-Math.cos(baseAngle)*12+Math.cos(perpMain)*6)},${f2(ey2-Math.sin(baseAngle)*12+Math.sin(perpMain)*6)} ${f2(ex2-Math.cos(baseAngle)*12-Math.cos(perpMain)*6)},${f2(ey2-Math.sin(baseAngle)*12-Math.sin(perpMain)*6)}"
+    fill="${p.a}" opacity="0.9"/>`;
+
+  // Axis degree label
+  out+=`<text x="${f2(cx)}" y="${f2(cy-8)}" font-family="'Orbitron',sans-serif" font-size="10" fill="${p.p}" text-anchor="middle" opacity="0.7">${card.yaw}°</text>`;
+
+  // Origin crosshair
+  out+=`<circle cx="${cx}" cy="${cy}" r="5" fill="none" stroke="${p.p}" stroke-width="1" opacity="0.6"/>`;
+  out+=`<circle cx="${cx}" cy="${cy}" r="1.5" fill="${p.p}" opacity="0.9"/>`;
+  out+=`<line x1="${cx-10}" y1="${cy}" x2="${cx+10}" y2="${cy}" stroke="${p.s}" stroke-width="0.5" opacity="0.4"/>`;
+  out+=`<line x1="${cx}" y1="${cy-10}" x2="${cx}" y2="${cy+10}" stroke="${p.s}" stroke-width="0.5" opacity="0.4"/>`;
+
+  // Corner index marks
+  const corners=[[W*0.05,H*0.1],[W*0.95,H*0.1],[W*0.05,H*0.62],[W*0.95,H*0.62]];
+  corners.forEach(([tx,ty])=>{
+    out+=`<text x="${f2(tx)}" y="${f2(ty)}" font-family="'Share Tech Mono',monospace" font-size="7" fill="${p.s}" opacity="0.4">${ri(0,999).toString().padStart(3,'0')}</text>`;
+  });
+  return out;
+}
+
+// ── CLUSTER ART ──────────────────────────────────────────────────
+// Node cluster topology — group of interconnected nodes in formation
+function artCluster(card, rng, W, H, cx, cy, p, uid) {
+  let out = '';
+  const clusterN = Math.floor(rng()*3)+2; // 2-4 sub-clusters
+  const clusters = [];
+
+  // Place sub-clusters
+  for(let c=0;c<clusterN;c++) {
+    const ccx=cx+(rng()-0.5)*W*0.55, ccy=cy+(rng()-0.5)*H*0.35;
+    const nodeN=Math.floor(rng()*3)+2;
+    const nodes=[];
+    for(let n=0;n<nodeN;n++) {
+      nodes.push({x:ccx+(rng()-0.5)*40, y:ccy+(rng()-0.5)*35});
+    }
+    clusters.push({cx:ccx,cy:ccy,nodes,main:c===0});
+  }
+
+  // Inter-cluster relay lines (pink/magenta)
+  for(let c=0;c<clusters.length-1;c++) {
+    const a=clusters[c], b=clusters[c+1];
+    const mx=(a.cx+b.cx)/2;
+    out+=`<path d="M${f2(a.cx)},${f2(a.cy)} L${f2(mx)},${f2(a.cy)} L${f2(mx)},${f2(b.cy)} L${f2(b.cx)},${f2(b.cy)}"
+      fill="none" stroke="${p.a}" stroke-width="0.7" opacity="0.35" stroke-dasharray="3 4"/>`;
+    out+=`<rect x="${f2(mx-2)}" y="${f2(a.cy-2)}" width="4" height="4" fill="${p.a}" opacity="0.4"/>`;
+  }
+
+  // Intra-cluster connections (full connections)
+  clusters.forEach(cl=>{
+    const col = cl.main ? p.p : p.s;
+    for(let a=0;a<cl.nodes.length;a++) {
+      for(let b=a+1;b<cl.nodes.length;b++) {
+        const na=cl.nodes[a], nb=cl.nodes[b];
+        out+=`<line x1="${f2(na.x)}" y1="${f2(na.y)}" x2="${f2(nb.x)}" y2="${f2(nb.y)}"
+          stroke="${col}" stroke-width="${f2(rng()*0.5+0.6)}" opacity="${f4(rng()*0.35+0.3)}"/>`;
+      }
+    }
+    // Cluster halo
+    out+=`<circle cx="${f2(cl.cx)}" cy="${f2(cl.cy)}" r="${f2(cl.nodes.length*9+10)}"
+      fill="none" stroke="${col}" stroke-width="0.5" opacity="0.15" stroke-dasharray="2 5"/>`;
+    // Nodes
+    cl.nodes.forEach((n,ni)=>{
+      const isHub=ni===0;
+      if(isHub) {
+        out+=`<rect x="${f2(n.x-5)}" y="${f2(n.y-5)}" width="10" height="10" fill="${col}" opacity="0.9" rx="1"/>`;
+        out+=`<rect x="${f2(n.x-2.5)}" y="${f2(n.y-2.5)}" width="5" height="5" fill="${p.bg}" opacity="0.7"/>`;
+      } else {
+        const nr=rng()*2+2.5;
+        out+=`<circle cx="${f2(n.x)}" cy="${f2(n.y)}" r="${f2(nr)}" fill="${col}" opacity="0.8"/>`;
+        out+=`<circle cx="${f2(n.x)}" cy="${f2(n.y)}" r="${f2(nr*0.4)}" fill="${p.bg}" opacity="0.6"/>`;
+      }
+    });
+  });
+
+  // Energy ring around primary cluster
+  const pc=clusters[0];
+  out+=`<circle cx="${f2(pc.cx)}" cy="${f2(pc.cy)}" r="${f2(rng()*10+30)}"
+    fill="none" stroke="${p.p}" stroke-width="1.5" opacity="0.35"/>`;
+  out+=`<circle cx="${f2(pc.cx)}" cy="${f2(pc.cy)}" r="${f2(rng()*6+20)}"
+    fill="none" stroke="${p.a}" stroke-width="0.5" opacity="0.2" stroke-dasharray="4 3"/>`;
+  return out;
+}
+
+// ── RENDER CARD DOM ───────────────────────────────────────────────
+function makeCardEl(card) {
+  const rcol = RARITY_COLORS[card.rarity];
+  const fam = FAMILIES[card.family];
+  const svgStr = buildSVG(card);
+
+  const div = document.createElement('div');
+  div.className = 'nft' + (card.minted?' minted':'');
+  div.dataset.id = card.id;
+  div.dataset.sub = card.subtype;
+  div.dataset.fam = card.family;
+  div.dataset.rar = card.rarity;
+  div.dataset.mint= card.minted;
+  div.style.boxShadow = `0 0 ${card.rarity==='LEGENDARY'?20:card.rarity==='EPIC'?12:6}px ${card.pal.p}${card.rarity==='LEGENDARY'?'55':card.rarity==='EPIC'?'33':'22'}`;
+
+  div.innerHTML = svgStr
+    + `<div class="rarity-strip" style="background:${rcol};opacity:0.7"></div>`
+    + `<div class="rarity-badge" style="color:${rcol};border-color:${rcol}">${card.rarity}</div>`
+    + `<div class="type-badge" style="color:${card.pal.p}">${fam.icon}</div>`
+    + `<div class="minted-mark">◈ MINTED</div>`
+    + `<div class="nft-ov">
+        <div class="nov-name" style="color:${card.pal.p}">${card.subtype}</div>
+        <div class="nov-type" style="color:${card.pal.s}">${card.family} CLASS · ${card.rarity} · #${card.tokenId}</div>
+        <div class="nov-grid">
+          <span><span class="nov-k">E </span><span class="nov-v" style="color:${card.pal.p}">${card.energy}</span></span>
+          <span><span class="nov-k">PWR </span><span class="nov-v" style="color:${card.pal.p}">${card.power}</span></span>
+          <span><span class="nov-k">AX </span><span class="nov-v" style="color:${card.pal.p}">${card.axisScore}</span></span>
+          <span><span class="nov-k">ETH </span><span class="nov-v" style="color:var(--vector-p)">${card.mintPrice}</span></span>
+        </div>
+        <div class="nov-hash">${card.hash.slice(0,28)}...</div>
+        <div class="nov-btns">
+          <button class="nov-btn" style="color:${card.pal.p};border-color:${card.pal.p}" data-action="view" data-id="${card.id}">VIEW</button>
+          <button class="nov-btn" style="color:${card.minted?'var(--g)':'var(--vector-p)'};border-color:${card.minted?'var(--g)':'var(--vector-p)'}" data-action="mint" data-id="${card.id}">${card.minted?'✓ MINTED':'◈ MINT'}</button>
+        </div>
+       </div>`;
+
+  div.addEventListener('click', e=>{
+    const action = e.target.dataset.action;
+    if(action==='view'){ e.stopPropagation(); openModal(card.id); return; }
+    if(action==='mint'){ e.stopPropagation(); mintCard(card.id); return; }
+    openModal(card.id);
+  });
+  return div;
+}
+
+// ── GRID MANAGEMENT ──────────────────────────────────────────────
+function appendCards(newCards) {
+  const grid = document.getElementById('grid');
+  document.getElementById('empty').style.display='none';
+  newCards.forEach(card=>{
+    grid.appendChild(makeCardEl(card));
+  });
+  updateStats();
+}
+
+function refreshGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML='';
+  const visible = filteredCards();
+  if(!visible.length) {
+    document.getElementById('empty').style.display='block';
+  } else {
+    document.getElementById('empty').style.display='none';
+    visible.forEach(c=>grid.appendChild(makeCardEl(c)));
+  }
+  updateStats();
+}
+
+function filteredCards() {
+  return CARDS.filter(c=>{
+    if(filter==='ALL')         return true;
+    if(filter==='CLASH')       return c.family==='CLASH';
+    if(filter==='CONDUIT')     return c.family==='CONDUIT';
+    if(filter==='MINTED')      return c.minted;
+    if(filter==='LEGENDARY')   return c.rarity==='LEGENDARY';
+    return c.subtype===filter;
+  });
+}
+
+function updateStats() {
+  document.getElementById('st-total').textContent  = CARDS.length;
+  document.getElementById('st-minted').textContent = CARDS.filter(c=>c.minted).length;
+  document.getElementById('st-seed').textContent   = globalSeed ? globalSeed.slice(0,14)+'...' : 'RANDOM';
+}
+
+// ── MINT ─────────────────────────────────────────────────────────
+function mintCard(id) {
+  const card=CARDS.find(c=>c.id===id);
+  if(!card||card.minted) return;
+  card.minted=true;
+  // Update existing DOM element if present
+  const el=document.querySelector(`.nft[data-id="${id}"]`);
+  if(el){
+    el.classList.add('minted');
+    el.dataset.mint='true';
+    const mintBtn=el.querySelector('[data-action="mint"]');
+    if(mintBtn){ mintBtn.textContent='✓ MINTED'; mintBtn.style.color='var(--g)'; mintBtn.style.borderColor='var(--g)'; }
+  }
+  if(modalCardId===id) updateModalMint(card);
+  toast(`◈ MINTED ${card.subtype} #${card.tokenId} — ${card.mintPrice} ETH`);
+  updateStats();
+}
+
+function mintAll() {
+  const un=CARDS.filter(c=>!c.minted);
+  if(!un.length){toast('// ALL CARDS MINTED');return;}
+  un.forEach((c,i)=>setTimeout(()=>mintCard(c.id),i*40));
+  toast(`◈ MINTING ${un.length} CARDS...`);
+}
+
+// ── MODAL ────────────────────────────────────────────────────────
+function openModal(id) {
+  const card=CARDS.find(c=>c.id===id);
+  if(!card) return;
+  modalCardId=id;
+  const p=card.pal, rcol=RARITY_COLORS[card.rarity];
+
+  document.getElementById('m-art').innerHTML = buildSVG(card);
+  document.getElementById('m-name').textContent=card.subtype;
+  document.getElementById('m-name').style.color=p.p;
+  document.getElementById('m-sub').textContent=`${card.family} CLASS · ${card.rarity} · TOKEN #${card.tokenId}`;
+
+  document.getElementById('m-stats').innerHTML=`
+    <div class="mi-row"><span class="mi-k">ABILITY</span><span class="mi-v" style="color:${p.p}">${card.ability}</span></div>
+    <div class="mi-row"><span class="mi-k">ENERGY</span><span class="mi-v" style="color:${p.p}">${card.energy}</span></div>
+    <div class="mi-row"><span class="mi-k">POWER</span><span class="mi-v" style="color:${p.p}">${card.power}</span></div>
+    <div class="mi-row"><span class="mi-k">AXIS SCORE</span><span class="mi-v" style="color:${p.p}">${card.axisScore}</span></div>
+    <div class="mi-row"><span class="mi-k">YAW/ROLL/PITCH</span><span class="mi-v" style="color:${p.s}">${card.yaw}°/${card.roll}°/${card.pitch}°</span></div>`;
+
+  document.getElementById('m-sides').innerHTML=`
+    <div class="mi-row"><span class="mi-k">TOP</span><span class="mi-v">${card.top}</span></div>
+    <div class="mi-row"><span class="mi-k">BOTTOM</span><span class="mi-v">${card.bottom}</span></div>
+    <div class="mi-row"><span class="mi-k">LEFT</span><span class="mi-v">${card.left}</span></div>
+    <div class="mi-row"><span class="mi-k">RIGHT</span><span class="mi-v">${card.right}</span></div>`;
+
+  document.getElementById('m-chain').innerHTML=`
+    <div class="mi-row"><span class="mi-k">MINT PRICE</span><span class="mi-v" style="color:var(--vector-p)">${card.mintPrice} ETH</span></div>
+    <div class="mi-row"><span class="mi-k">BLOCK</span><span class="mi-v">${card.blockNum.toLocaleString()}</span></div>
+    <div class="mi-row"><span class="mi-k">GAS</span><span class="mi-v">${card.gas.toLocaleString()}</span></div>
+    <div class="mi-row"><span class="mi-k">STATUS</span><span class="mi-v" style="color:${card.minted?'var(--g)':'#444'}">${card.minted?'MINTED':'UNMINTED'}</span></div>`;
+
+  document.getElementById('m-hash').textContent=`CONTRACT: ${card.contractAddr}\nHASH: ${card.hash}`;
+  updateModalMint(card);
+  document.getElementById('modal').classList.add('open');
+}
+
+function updateModalMint(card) {
+  const btn=document.getElementById('m-mint-btn');
+  btn.textContent=card.minted?'✓ ALREADY MINTED':'◈ MINT THIS CARD';
+  btn.style.opacity=card.minted?'0.4':'1';
+  btn.onclick=card.minted?null:()=>mintCard(card.id);
+}
+
+document.getElementById('m-close').addEventListener('click',()=>{ document.getElementById('modal').classList.remove('open'); modalCardId=null; });
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal')){document.getElementById('modal').classList.remove('open');modalCardId=null;}});
+
+// ── TOAST ────────────────────────────────────────────────────────
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none',2800);
+}
+
+// ── GENERATE BATCH ───────────────────────────────────────────────
+function generateBatch(n) {
+  if(!enabledTypes.size){toast('// SELECT AT LEAST ONE TYPE');return;}
+  const newCards=[];
+  for(let i=0;i<n;i++){
+    const c=genCard();
+    if(c){ CARDS.push(c); newCards.push(c); }
+  }
+  if(newCards.length) appendCards(newCards);
+  updateStats();
+}
+
+// AUTO GENERATE
+let autoRunning=false;
+function toggleAuto() {
+  autoRunning=!autoRunning;
+  const btn=document.getElementById('b-inf');
+  if(autoRunning) {
+    btn.textContent='■ STOP'; btn.style.color='var(--overshoot-p)'; btn.style.borderColor='var(--overshoot-p)';
+    autoInterval=setInterval(()=>generateBatch(1),280);
+    toast('∞ AUTO-GENERATE RUNNING...');
+  } else {
+    clearInterval(autoInterval);
+    btn.textContent='∞ AUTO'; btn.style.color=''; btn.style.borderColor='';
+    toast(`// AUTO STOPPED — ${CARDS.length} CARDS`);
+  }
+}
+
+// ── EXPORT JSON ──────────────────────────────────────────────────
+function exportJSON() {
+  if(!CARDS.length){toast('// NO CARDS TO EXPORT');return;}
+  const data={
+    cernel_forge:{ version:'β1.0', protocol:'ETH-FORK', generated:new Date().toISOString(), totalCards:CARDS.length, mintedCards:CARDS.filter(c=>c.minted).length, globalSeed:globalSeed||'RANDOM' },
+    cards:CARDS.map(c=>({
+      id:c.id, tokenId:c.tokenId, hash:c.hash, family:c.family, subtype:c.subtype,
+      rarity:c.rarity, ability:c.ability, energy:c.energy, power:c.power,
+      yaw:c.yaw, roll:c.roll, pitch:c.pitch, axisScore:c.axisScore,
+      top:c.top, left:c.left, right:c.right, bottom:c.bottom,
+      mintPrice:c.mintPrice, minted:c.minted,
+      contractAddress:c.contractAddr, blockNumber:c.blockNum, gasUsed:c.gas,
+      metadata:{ name:`CERNEL ${c.subtype} #${c.tokenId}`, description:`${c.family} CLASS — ${c.subtype}. Ability: ${c.ability}. Rarity: ${c.rarity}.`,
+        attributes:[
+          {trait_type:'Family',value:c.family},{trait_type:'Subtype',value:c.subtype},
+          {trait_type:'Rarity',value:c.rarity},{trait_type:'Ability',value:c.ability},
+          {trait_type:'Energy',value:c.energy},{trait_type:'Power',value:c.power},
+          {trait_type:'AxisScore',value:c.axisScore},{trait_type:'Yaw',value:c.yaw},
+          {trait_type:'Roll',value:c.roll},{trait_type:'Pitch',value:c.pitch},
+        ]
+      }
+    }))
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='cernel-forge-set.json'; a.click();
+  toast(`↓ EXPORTED ${CARDS.length} CARDS`);
+}
+
+// ── WIRING ───────────────────────────────────────────────────────
+document.getElementById('b-gen1').addEventListener('click', ()=>generateBatch(1));
+document.getElementById('b-gen6').addEventListener('click', ()=>generateBatch(6));
+document.getElementById('b-gen24').addEventListener('click', ()=>generateBatch(24));
+document.getElementById('b-gen100').addEventListener('click', ()=>generateBatch(100));
+document.getElementById('b-inf').addEventListener('click', toggleAuto);
+
+document.getElementById('b-seed').addEventListener('click', ()=>{
+  const val=document.getElementById('seed-input').value.trim();
+  if(!val){toast('// ENTER A SEED STRING');return;}
+  globalSeed=val; seedCounter=0; CARDS=[]; tokenSeq=0;
+  refreshGrid();
+  toast(`◈ SEED SET: ${val.slice(0,20)} — GENERATING...`);
+  setTimeout(()=>generateBatch(12),100);
+});
+
+document.getElementById('b-mint-all').addEventListener('click', mintAll);
+document.getElementById('b-export').addEventListener('click', exportJSON);
+document.getElementById('b-clear').addEventListener('click', ()=>{
+  if(autoRunning) toggleAuto();
+  CARDS=[]; tokenSeq=0;
+  document.getElementById('grid').innerHTML='';
+  document.getElementById('empty').style.display='block';
+  updateStats(); toast('// FORGE CLEARED');
+});
+
+// Type toggle buttons
+document.querySelectorAll('.type-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const t=btn.dataset.t;
+    if(enabledTypes.has(t)) { enabledTypes.delete(t); btn.classList.remove('on'); }
+    else { enabledTypes.add(t); btn.classList.add('on'); }
+    toast(`TYPE ${t}: ${enabledTypes.has(t)?'ON':'OFF'}`);
+  });
+});
+
+// Filter bar
+document.querySelectorAll('.fb-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.fb-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); filter=btn.dataset.f; refreshGrid();
+  });
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if(e.key==='g') generateBatch(1);
+  if(e.key==='G') generateBatch(6);
+  if(e.key==='a'||e.key==='A') toggleAuto();
+  if(e.key==='Escape') { document.getElementById('modal').classList.remove('open'); modalCardId=null; }
+});
+
+// ── INIT ─────────────────────────────────────────────────────────
+document.getElementById('empty').style.display='block';
+toast('CERNEL//FORGE β1.0 LOADED — [G] GENERATE · [A] AUTO · [X] CLEAR');
+</script>
+</body>
+</html>
